@@ -1,0 +1,96 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class CalculatorApp extends JFrame {
+    private JTextField display;
+    private StringBuilder currentInput;
+    private double result;
+    private String operator;
+
+    public CalculatorApp() {
+        setTitle("Calculator");
+        setSize(300, 400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+
+        currentInput = new StringBuilder();
+        display = new JTextField();
+        display.setEditable(false);
+        display.setFont(new Font("Arial", Font.BOLD, 24));
+        display.setHorizontalAlignment(JTextField.RIGHT);
+        add(display, BorderLayout.NORTH);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 4, 5, 5));
+        String[] buttons = {
+            "7", "8", "9", "/",
+            "4", "5", "6", "*",
+            "1", "2", "3", "-",
+            "0", "C", "=", "+"
+        };
+
+        for (String label : buttons) {
+            JButton button = new JButton(label);
+            button.setFont(new Font("Arial", Font.BOLD, 18));
+            button.addActionListener(new ButtonClickListener());
+            buttonPanel.add(button);
+        }
+
+        add(buttonPanel, BorderLayout.CENTER);
+    }
+
+    private class ButtonClickListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            String cmd = e.getActionCommand();
+
+            if ("0123456789".contains(cmd)) {
+                currentInput.append(cmd);
+                display.setText(currentInput.toString());
+            } else if ("+-*/".contains(cmd)) {
+                try {
+                    result = Double.parseDouble(currentInput.toString());
+                } catch (NumberFormatException ex) {
+                    result = 0;
+                }
+                operator = cmd;
+                currentInput.setLength(0);
+            } else if ("=".equals(cmd)) {
+                double secondOperand;
+                try {
+                    secondOperand = Double.parseDouble(currentInput.toString());
+                } catch (NumberFormatException ex) {
+                    secondOperand = 0;
+                }
+
+                switch (operator) {
+                    case "+": result += secondOperand; break;
+                    case "-": result -= secondOperand; break;
+                    case "*": result *= secondOperand; break;
+                    case "/":
+                        if (secondOperand != 0) {
+                            result /= secondOperand;
+                        } else {
+                            display.setText("Error: Divide by 0");
+                            currentInput.setLength(0);
+                            return;
+                        }
+                        break;
+                }
+                display.setText(String.valueOf(result));
+                currentInput.setLength(0);
+            } else if ("C".equals(cmd)) {
+                currentInput.setLength(0);
+                result = 0;
+                operator = "";
+                display.setText("");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new CalculatorApp().setVisible(true);
+        });
+    }
+}
